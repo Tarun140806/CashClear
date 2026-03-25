@@ -1,71 +1,103 @@
 function Results({ analysisResult }) {
-	if (!analysisResult) {
-		return (
-			<section className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-xl">
-				<p className="text-slate-300">No results yet</p>
-			</section>
-		)
-	}
+  const formatCurrency = (value) => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+      return "-";
+    }
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(numeric);
+  };
 
-	const {
-		cash_balance,
-		total_obligations,
-		shortfall,
-		days_to_zero,
-		prioritized_obligations = [],
-		reasoning,
-	} = analysisResult
+  if (!analysisResult) {
+    return (
+      <section className="panel">
+        <p className="empty-text">No results yet</p>
+      </section>
+    );
+  }
 
-	return (
-		<section className="space-y-5 rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-xl">
-			<h2 className="text-2xl font-semibold text-white">Analysis Results</h2>
+  const {
+    cash_balance,
+    total_obligations,
+    shortfall,
+    days_to_zero,
+    prioritized_obligations = [],
+    reasoning,
+  } = analysisResult;
 
-			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-				<div className="rounded-lg bg-slate-950 p-4">
-					<p className="text-xs uppercase tracking-wide text-slate-400">Cash Balance</p>
-					<p className="mt-1 text-lg font-semibold text-white">{cash_balance ?? '-'}</p>
-				</div>
-				<div className="rounded-lg bg-slate-950 p-4">
-					<p className="text-xs uppercase tracking-wide text-slate-400">Total Obligations</p>
-					<p className="mt-1 text-lg font-semibold text-white">{total_obligations ?? '-'}</p>
-				</div>
-				<div className="rounded-lg bg-slate-950 p-4">
-					<p className="text-xs uppercase tracking-wide text-slate-400">Shortfall</p>
-					<p className="mt-1 text-lg font-semibold text-white">{shortfall ?? '-'}</p>
-				</div>
-				<div className="rounded-lg bg-slate-950 p-4">
-					<p className="text-xs uppercase tracking-wide text-slate-400">Days to Zero</p>
-					<p className="mt-1 text-lg font-semibold text-white">{days_to_zero ?? '-'}</p>
-				</div>
-			</div>
+  return (
+    <section className="panel results-panel">
+      <h2 className="panel-title">Analysis Results</h2>
 
-			<div>
-				<h3 className="mb-2 text-lg font-medium text-white">Prioritized Obligations</h3>
-				{prioritized_obligations.length === 0 ? (
-					<p className="text-slate-300">No results yet</p>
-				) : (
-					<div className="space-y-2">
-						{prioritized_obligations.map((item) => (
-							<div
-								key={item.id || `${item.vendor}-${item.amount}`}
-								className="rounded-lg bg-slate-950 p-4"
-							>
-								<p className="font-semibold text-white">{item.vendor}</p>
-								<p className="text-sm text-slate-300">Amount: {item.amount}</p>
-								<p className="text-sm text-slate-300">Risk Level: {item.risk_level}</p>
-								<p className="text-sm text-slate-300">Can Pay: {item.can_pay ? 'Yes' : 'No'}</p>
-							</div>
-						))}
-					</div>
-				)}
-			</div>
+      <div className="summary-grid">
+        <div className="summary-card">
+          <p className="summary-label">Cash Balance</p>
+          <p className="summary-value">{formatCurrency(cash_balance)}</p>
+        </div>
+        <div className="summary-card">
+          <p className="summary-label">Total Obligations</p>
+          <p className="summary-value">{formatCurrency(total_obligations)}</p>
+        </div>
+        <div className="summary-card">
+          <p className="summary-label">Shortfall</p>
+          <p className="summary-value">{formatCurrency(shortfall)}</p>
+        </div>
+        <div className="summary-card">
+          <p className="summary-label">Days to Zero</p>
+          <p className="summary-value">{days_to_zero ?? "-"}</p>
+        </div>
+      </div>
 
-			<div className="rounded-lg bg-slate-950 p-4">
-				<h3 className="text-lg font-medium text-white">Reasoning</h3>
-				<p className="mt-1 text-slate-300">{reasoning || 'No results yet'}</p>
-			</div>
-		</section>
-	)
+      <div>
+        <h3 className="section-title">Prioritized Obligations</h3>
+        {prioritized_obligations.length === 0 ? (
+          <p className="empty-text">No results yet</p>
+        ) : (
+          <div className="table-wrap">
+            <table className="results-table">
+              <thead>
+                <tr>
+                  <th>Vendor</th>
+                  <th>Amount</th>
+                  <th>Score</th>
+                  <th>Can Pay</th>
+                  <th>Risk Level</th>
+                </tr>
+              </thead>
+              <tbody>
+                {prioritized_obligations.map((item) => (
+                  <tr
+                    key={item.id || `${item.vendor}-${item.amount}`}
+                    className={`row-risk-${item.risk_level || "unknown"}`}
+                  >
+                    <td>{item.vendor || "-"}</td>
+                    <td>{formatCurrency(item.amount)}</td>
+                    <td>{item.score ?? "-"}</td>
+                    <td>{item.can_pay ? "Yes" : "No"}</td>
+                    <td>
+                      <span
+                        className={`risk-pill risk-${item.risk_level || "unknown"}`}
+                      >
+                        {item.risk_level || "-"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="reasoning-card">
+        <h3 className="section-title">Reasoning</h3>
+        <p className="reasoning-text">{reasoning || "No results yet"}</p>
+      </div>
+    </section>
+  );
 }
 
-export default Results
+export default Results;
