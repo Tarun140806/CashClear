@@ -1,10 +1,19 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.jsx";
+import AuthPage from "./pages/AuthPage.jsx";
+import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 
-createRoot(document.getElementById('root')).render(
+function Root() {
+  const { currentUser } = useAuth();
+  return currentUser ? <App /> : <AuthPage />;
+}
+
+createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
-  </StrictMode>,
-)
+    <AuthProvider>
+      <Root />
+    </AuthProvider>
+  </StrictMode>
+);
